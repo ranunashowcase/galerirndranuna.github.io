@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R&D Vault - Galeri Produk</title>
+
+    <!-- Menggunakan Tailwind CSS untuk styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Menggunakan Lucide Icons untuk ikon -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body class="flex h-screen bg-gray-50 font-sans text-gray-800 overflow-hidden">
+
+    <!-- SIDEBAR - Daftar Kode Unik -->
+    <aside class="w-64 bg-white border-r border-gray-200 flex flex-col h-full shadow-sm z-10">
+        <div class="p-4 border-b border-gray-200 flex items-center gap-2">
+            <div class="bg-blue-600 p-2 rounded-lg">
+                <i data-lucide="folder" class="w-5 h-5 text-white"></i>
+            </div>
+            <h1 class="font-bold text-lg text-gray-800">R&D Vault</h1>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                Daftar Kode Unik
+            </div>
+
+            <!-- List Galeri akan dirender di sini oleh JavaScript -->
+            <div id="galleryList"></div>
+        </div>
+
+        <div class="p-4 border-t border-gray-200">
+            <button onclick="openAddGalleryModal()"
+                class="w-full flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white py-2.5 rounded-lg text-sm font-medium transition-colors">
+                <i data-lucide="plus" class="w-4 h-4"></i>
+                Tambah Kode Unik
+            </button>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT - Galeri Gambar -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden bg-gray-50/50">
+
+        <!-- Konten Utama akan dirender di sini oleh JavaScript -->
+        <div id="mainContent" class="flex-1 flex flex-col h-full overflow-hidden">
+            <!-- Header dan Grid akan masuk ke sini -->
+        </div>
+
+    </main>
+
+    <!-- MODAL: Tambah Kode Unik Baru -->
+    <div id="addGalleryModal"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-bold text-lg text-gray-900">Buat Kode Unik Baru</h3>
+                <button onclick="closeAddGalleryModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="addGalleryForm" class="p-6" onsubmit="handleCreateGallery(event)">
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Kode Produk / R&D</label>
+                    <input type="text" id="newGalleryCode" required placeholder="Misal: RND-X200-BETA"
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all uppercase" />
+                    <p class="text-xs text-gray-500 mt-2">Kode ini akan menjadi halaman unik untuk mengelompokkan
+                        gambar.</p>
+                </div>
+                <div class="flex justify-end gap-3 mt-6">
+                    <button type="button" onclick="closeAddGalleryModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                        Buat Galeri
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: Unggah Gambar -->
+    <div id="uploadModal"
+        class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+                <h3 class="font-bold text-lg text-gray-900" id="uploadModalTitle">Unggah Gambar</h3>
+                <button onclick="closeUploadModal()" class="text-gray-400 hover:text-gray-600 p-1">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="uploadForm" class="p-6" onsubmit="handleSaveImage(event)">
+
+                <div id="uploadDropzone"
+                    class="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:bg-gray-50 transition-colors cursor-pointer mb-4"
+                    onclick="document.getElementById('fileInput').click()">
+                    <i data-lucide="upload" class="w-8 h-8 text-blue-500 mx-auto mb-3"></i>
+                    <p class="text-sm font-medium text-gray-700 mb-1">Klik untuk memilih gambar</p>
+                    <p class="text-xs text-gray-500">Mendukung JPG, PNG, WEBP</p>
+                </div>
+
+                <div id="uploadPreviewContainer"
+                    class="hidden mb-4 relative rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
+                    <img id="uploadPreviewImage" src="" alt="Preview" class="w-full max-h-64 object-contain" />
+                    <button type="button" onclick="clearSelectedFile()"
+                        class="absolute top-2 right-2 p-1.5 bg-black/50 text-white rounded-full hover:bg-black/70">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <input type="file" id="fileInput" accept="image/*" class="hidden" onchange="handleFileChange(event)" />
+
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Deskripsi / Judul Gambar</label>
+                    <input type="text" id="uploadImageTitle" placeholder="Misal: Tampak Atas Prototipe V2"
+                        class="w-full px-4 py-2.5 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all disabled:bg-gray-100 disabled:text-gray-400"
+                        disabled />
+                </div>
+
+                <div class="flex justify-end gap-3 mt-6 border-t border-gray-100 pt-4">
+                    <button type="button" onclick="closeUploadModal()"
+                        class="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit" id="saveImageBtn" disabled
+                        class="px-4 py-2 text-sm font-medium bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:bg-blue-300 disabled:cursor-not-allowed">
+                        Simpan Gambar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- LIGHTBOX: Mode Layar Penuh Gambar -->
+    <div id="lightboxModal" class="hidden fixed inset-0 bg-black/90 flex flex-col z-[60]">
+        <div class="flex items-center justify-between p-4 text-white">
+            <div id="lightboxTitle" class="font-medium"></div>
+            <button onclick="closeLightbox()" class="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+        </div>
+        <div class="flex-1 flex items-center justify-center p-4 overflow-hidden">
+            <img id="lightboxImage" src="" alt="" class="max-w-full max-h-full object-contain" />
+        </div>
+    </div>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        let galleries = {
+            "RND-ALPHA-01": [
+                { id: 1, title: "Desain Awal", url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800" },
+                { id: 2, title: "Uji Material", url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800" }
+            ],
+            "RND-BETA-02": [
+                { id: 3, title: "Prototipe 3D", url: "https://images.unsplash.com/photo-1581092335397-9583eb92d232?auto=format&fit=crop&q=80&w=800" }
+            ]
+        };
+
+        let activeCode = "RND-ALPHA-01";
+        let selectedFileUrl = null;
+
+        // --- RENDER FUNCTIONS ---
+        function renderApp() {
+            renderSidebar();
+            renderMainContent();
+            // Render ulang icon dari Lucide setelah DOM berubah
+            lucide.createIcons();
+        }
+
+        function renderSidebar() {
+            const listContainer = document.getElementById('galleryList');
+            const codes = Object.keys(galleries);
+
+            if (codes.length === 0) {
+                listContainer.innerHTML = `<div class="text-sm text-gray-500 italic text-center py-4">Belum ada galeri.</div>`;
+                return;
+            }
+
+            listContainer.innerHTML = codes.map(code => {
+                const isActive = activeCode === code;
+                const count = galleries[code].length;
+
+                return `
+          <div 
+            onclick="setActiveCode('${code}')"
+            class="flex items-center justify-between p-3 rounded-xl cursor-pointer transition-colors ${isActive
+                        ? "bg-blue-50 text-blue-700 border border-blue-100"
+                        : "hover:bg-gray-100 text-gray-600 border border-transparent"
+                    }"
+          >
+            <div class="flex items-center gap-3 truncate">
+              <i data-lucide="folder" class="w-4 h-4 ${isActive ? "text-blue-500" : "text-gray-400"}"></i>
+              <span class="font-medium text-sm truncate">${code}</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs bg-white px-2 py-1 rounded-full shadow-sm border border-gray-100">
+                ${count}
+              </span>
+            </div>
+          </div>
+        `;
+            }).join('');
+        }
+
+        function renderMainContent() {
+            const mainContainer = document.getElementById('mainContent');
+
+            if (!activeCode) {
+                mainContainer.innerHTML = `
+          <div class="h-full flex flex-col items-center justify-center text-center p-8">
+            <i data-lucide="folder" class="w-16 h-16 text-gray-300 mb-4"></i>
+            <h2 class="text-xl font-medium text-gray-600 mb-2">Pilih atau Buat Kode Unik</h2>
+            <p class="text-gray-400 text-sm max-w-md">
+              Pilih folder dari menu di sebelah kiri untuk melihat galeri produk, atau buat kode unik baru untuk memulai penelitian baru.
+            </p>
+          </div>
+        `;
+                return;
+            }
+
+            const images = galleries[activeCode];
+
+            let gridContent = '';
+            if (images.length === 0) {
+                gridContent = `
+          <div class="h-full flex flex-col items-center justify-center text-center">
+            <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-4 border-2 border-dashed border-gray-300">
+              <i data-lucide="image" class="w-10 h-10 text-gray-400"></i>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-1">Galeri Masih Kosong</h3>
+            <p class="text-gray-500 text-sm max-w-sm mb-6">
+              Belum ada gambar yang diunggah untuk kode penelitian ${activeCode}.
+            </p>
+            <button onclick="openUploadModal()" class="text-blue-600 font-medium hover:underline flex items-center gap-1">
+              <i data-lucide="plus" class="w-4 h-4"></i> Unggah Gambar Pertama
+            </button>
+          </div>
+        `;
+            } else {
+                gridContent = `
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            ${images.map(img => `
+              <div class="group relative bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all">
+                <div class="aspect-[4/3] bg-gray-100 relative overflow-hidden">
+                  <img src="${img.url}" alt="${img.title}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
+                  <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                    <button onclick="openLightbox('${img.url}', '${img.title}')" class="p-2 bg-white/20 hover:bg-white/40 backdrop-blur-sm rounded-full text-white transition-colors" title="Perbesar">
+                      <i data-lucide="maximize-2" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="handleDeleteImage(${img.id})" class="p-2 bg-red-500/80 hover:bg-red-600 backdrop-blur-sm rounded-full text-white transition-colors" title="Hapus">
+                      <i data-lucide="trash-2" class="w-5 h-5"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="p-4">
+                  <h4 class="font-medium text-gray-800 truncate" title="${img.title}">${img.title}</h4>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `;
+            }
+
+            mainContainer.innerHTML = `
+        <header class="bg-white border-b border-gray-200 px-8 py-5 flex items-center justify-between sticky top-0 z-10">
+          <div>
+            <div class="flex items-center gap-2 text-sm text-gray-500 mb-1">
+              <span>Galeri</span>
+              <i data-lucide="chevron-right" class="w-4 h-4"></i>
+              <span class="font-medium text-blue-600">${activeCode}</span>
+            </div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+              ${activeCode}
+              <button onclick="handleDeleteGallery('${activeCode}')" class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors" title="Hapus Galeri Ini">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </h2>
+          </div>
+          
+          <button onclick="openUploadModal()" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition-colors shadow-sm shadow-blue-200">
+            <i data-lucide="upload" class="w-4 h-4"></i>
+            Unggah Gambar
+          </button>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8">
+          ${gridContent}
+        </div>
+      `;
+        }
+
+        // --- ACTIONS ---
+        function setActiveCode(code) {
+            activeCode = code;
+            renderApp();
+        }
+
+        // Modal Add Gallery
+        function openAddGalleryModal() {
+            document.getElementById('addGalleryModal').classList.remove('hidden');
+            document.getElementById('newGalleryCode').focus();
+        }
+
+        function closeAddGalleryModal() {
+            document.getElementById('addGalleryModal').classList.add('hidden');
+            document.getElementById('newGalleryCode').value = '';
+        }
+
+        function handleCreateGallery(e) {
+            e.preventDefault();
+            const inputEl = document.getElementById('newGalleryCode');
+            const code = inputEl.value.trim().toUpperCase();
+
+            if (!code) return;
+
+            if (!galleries[code]) {
+                galleries[code] = [];
+                activeCode = code;
+                closeAddGalleryModal();
+                renderApp();
+            } else {
+                alert("Kode unik ini sudah ada!");
+            }
+        }
+
+        function handleDeleteGallery(codeToDelete) {
+            if (confirm(`Apakah Anda yakin ingin menghapus galeri ${codeToDelete}?`)) {
+                delete galleries[codeToDelete];
+
+                if (activeCode === codeToDelete) {
+                    const remainingCodes = Object.keys(galleries);
+                    activeCode = remainingCodes.length > 0 ? remainingCodes[0] : null;
+                }
+                renderApp();
+            }
+        }
+
+        // Modal Upload
+        function openUploadModal() {
+            if (!activeCode) return;
+            document.getElementById('uploadModalTitle').innerText = `Unggah ke ${activeCode}`;
+            document.getElementById('uploadModal').classList.remove('hidden');
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.add('hidden');
+            clearSelectedFile();
+        }
+
+        function handleFileChange(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    selectedFileUrl = reader.result;
+
+                    // Tampilkan preview
+                    document.getElementById('uploadDropzone').classList.add('hidden');
+                    document.getElementById('uploadPreviewContainer').classList.remove('hidden');
+                    document.getElementById('uploadPreviewImage').src = selectedFileUrl;
+
+                    // Aktifkan input judul & tombol simpan
+                    document.getElementById('uploadImageTitle').disabled = false;
+                    document.getElementById('saveImageBtn').disabled = false;
+                    document.getElementById('uploadImageTitle').focus();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function clearSelectedFile() {
+            selectedFileUrl = null;
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadImageTitle').value = '';
+
+            // Reset tampilan form
+            document.getElementById('uploadDropzone').classList.remove('hidden');
+            document.getElementById('uploadPreviewContainer').classList.add('hidden');
+            document.getElementById('uploadPreviewImage').src = '';
+
+            // Nonaktifkan input
+            document.getElementById('uploadImageTitle').disabled = true;
+            document.getElementById('saveImageBtn').disabled = true;
+        }
+
+        function handleSaveImage(e) {
+            e.preventDefault();
+            if (!selectedFileUrl || !activeCode) return;
+
+            const titleInput = document.getElementById('uploadImageTitle').value.trim();
+            const newImage = {
+                id: Date.now(),
+                title: titleInput || "Tanpa Judul",
+                url: selectedFileUrl
+            };
+
+            galleries[activeCode].push(newImage);
+
+            closeUploadModal();
+            renderApp();
+        }
+
+        function handleDeleteImage(imageId) {
+            if (confirm("Hapus gambar ini?")) {
+                galleries[activeCode] = galleries[activeCode].filter(img => img.id !== imageId);
+                renderApp();
+            }
+        }
+
+        // Lightbox
+        function openLightbox(url, title) {
+            document.getElementById('lightboxImage').src = url;
+            document.getElementById('lightboxTitle').innerText = title;
+            document.getElementById('lightboxModal').classList.remove('hidden');
+        }
+
+        function closeLightbox() {
+            document.getElementById('lightboxModal').classList.add('hidden');
+            document.getElementById('lightboxImage').src = '';
+        }
+
+        // Inisialisasi awal
+        renderApp();
+
+    </script>
+</body>
+
+</html>
