@@ -151,7 +151,7 @@
 
     <script>
         // --- STATE MANAGEMENT ---
-        let galleries = {
+        let defaultGalleries = {
             "RND-ALPHA-01": [
                 { id: 1, title: "Desain Awal", url: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800" },
                 { id: 2, title: "Uji Material", url: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=800" }
@@ -161,8 +161,42 @@
             ]
         };
 
-        let activeCode = "RND-ALPHA-01";
+        let galleries = {};
+        let activeCode = null;
         let selectedFileUrl = null;
+
+        function loadData() {
+            const saved = localStorage.getItem('rnd_galleries');
+            if (saved) {
+                try {
+                    galleries = JSON.parse(saved);
+                } catch (e) {
+                    galleries = defaultGalleries;
+                }
+            } else {
+                galleries = defaultGalleries;
+            }
+            
+            const savedCode = localStorage.getItem('rnd_activeCode');
+            if (savedCode && galleries[savedCode]) {
+                activeCode = savedCode;
+            } else {
+                const codes = Object.keys(galleries);
+                activeCode = codes.length > 0 ? codes[0] : null;
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('rnd_galleries', JSON.stringify(galleries));
+                localStorage.setItem('rnd_activeCode', activeCode || '');
+            } catch (e) {
+                console.error("Gagal menyimpan data:", e);
+                if (e.name === 'QuotaExceededError' || e.code === 22) {
+                    alert("Penyimpanan lokal penuh (melebihi batas ~5MB)! Tidak dapat menyimpan gambar lebih banyak. Harap hapus beberapa gambar lama.");
+                }
+            }
+        }
 
         // --- RENDER FUNCTIONS ---
         function renderApp() {
@@ -297,6 +331,7 @@
         // --- ACTIONS ---
         function setActiveCode(code) {
             activeCode = code;
+            saveData();
             renderApp();
         }
 
@@ -321,6 +356,7 @@
             if (!galleries[code]) {
                 galleries[code] = [];
                 activeCode = code;
+                saveData();
                 closeAddGalleryModal();
                 renderApp();
             } else {
@@ -336,6 +372,7 @@
                     const remainingCodes = Object.keys(galleries);
                     activeCode = remainingCodes.length > 0 ? remainingCodes[0] : null;
                 }
+                saveData();
                 renderApp();
             }
         }
@@ -400,7 +437,8 @@
             };
 
             galleries[activeCode].push(newImage);
-
+            
+            saveData();
             closeUploadModal();
             renderApp();
         }
@@ -408,6 +446,7 @@
         function handleDeleteImage(imageId) {
             if (confirm("Hapus gambar ini?")) {
                 galleries[activeCode] = galleries[activeCode].filter(img => img.id !== imageId);
+                saveData();
                 renderApp();
             }
         }
@@ -425,6 +464,7 @@
         }
 
         // Inisialisasi awal
+        loadData();
         renderApp();
 
     </script>
