@@ -139,20 +139,70 @@
         </div>
     </div>
 
-    <!-- LIGHTBOX: Mode Layar Penuh Gambar -->
-    <div id="lightboxModal" class="hidden fixed inset-0 bg-black/90 flex flex-col z-[60]">
-        <div class="flex items-center justify-between p-4 text-white">
-            <div id="lightboxTitle" class="font-medium"></div>
-            <button onclick="closeLightbox()" class="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors">
-                <i data-lucide="x" class="w-6 h-6"></i>
-            </button>
+    <!-- LIGHTBOX: Mode Layar Penuh Gambar dengan Zoom -->
+    <style>
+        #lightboxContainer { cursor: grab; }
+        #lightboxContainer:active { cursor: grabbing; }
+        #lightboxImage {
+            transform-origin: center center;
+            transition: none;
+            will-change: transform;
+            max-width: none !important;
+            max-height: none !important;
+            user-select: none;
+            -webkit-user-drag: none;
+        }
+        .lb-btn {
+            display: flex; align-items: center; justify-content: center;
+            padding: 8px; border-radius: 8px;
+            background: rgba(255,255,255,0.1);
+            color: white; border: none; cursor: pointer;
+            transition: background 0.15s;
+        }
+        .lb-btn:hover { background: rgba(255,255,255,0.25); }
+        .lb-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px; }
+    </style>
+    <div id="lightboxModal" class="hidden fixed inset-0 bg-black/95 flex flex-col z-[60]">
+        <!-- Top bar: title + close -->
+        <div class="flex items-center justify-between px-5 py-3 text-white bg-black/50 backdrop-blur-sm border-b border-white/10">
+            <div id="lightboxTitle" class="font-medium text-sm truncate max-w-[50%]"></div>
+            <div class="flex items-center gap-2">
+                <span id="lbZoomLevel" class="text-xs font-mono bg-white/10 px-2.5 py-1 rounded-md">100%</span>
+                <button onclick="closeLightbox()" class="lb-btn" title="Tutup (Esc)">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
         </div>
-        <div class="flex-1 flex items-center justify-center p-4 overflow-hidden">
-            <img id="lightboxImage" src="" alt="" class="max-w-full max-h-full object-contain" />
+
+        <!-- Image container: pan & zoom area -->
+        <div id="lightboxContainer" class="flex-1 flex items-center justify-center overflow-hidden relative">
+            <img id="lightboxImage" src="" alt="" />
+        </div>
+
+        <!-- Bottom toolbar: zoom controls -->
+        <div class="flex items-center justify-center gap-1 px-5 py-3 bg-black/50 backdrop-blur-sm border-t border-white/10">
+            <button onclick="lbZoomOut()" class="lb-btn" title="Perkecil (-)">
+                <i data-lucide="minus" class="w-5 h-5"></i>
+            </button>
+            <button onclick="lbResetZoom()" class="lb-btn" title="Reset Zoom (0)">
+                <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+            </button>
+            <button onclick="lbZoomIn()" class="lb-btn" title="Perbesar (+)">
+                <i data-lucide="plus" class="w-5 h-5"></i>
+            </button>
+            <div class="lb-divider"></div>
+            <button onclick="lbFitScreen()" class="lb-btn" title="Sesuaikan Layar">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
+            </button>
+            <button onclick="lbActualSize()" class="lb-btn" title="Ukuran Asli (100%)">
+                <i data-lucide="scan" class="w-4 h-4"></i>
+            </button>
+            <div class="lb-divider"></div>
+            <span class="text-white/40 text-xs ml-2 hidden sm:inline">Scroll = Zoom · Drag = Geser · Klik 2x = Zoom Cepat</span>
         </div>
     </div>
 
-    <script src="app.js?v=3"></script>
+    <script src="app.js?v=4"></script>
 </body>
 
 </html>
