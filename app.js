@@ -4,7 +4,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 var galleries = {};
 var activeCode = null;
-var selectedFileData = null;
+var selectedFilesData = [];
 
 var urlParams = new URLSearchParams(window.location.search);
 var embedCode = urlParams.get('embed');
@@ -206,52 +206,85 @@ function closeUploadModal() {
 }
 
 function handleFileChange(e) {
-  var file = e.target.files[0];
-  if (!file) return;
+  var files = e.target.files;
+  if (!files || files.length === 0) return;
   var dropzone = document.getElementById('uploadDropzone');
-  // Use the original file directly — no compression, no resize
-  selectedFileData = file;
+  
+  selectedFilesData = Array.from(files);
+  
   dropzone.classList.add('hidden');
   document.getElementById('uploadPreviewContainer').classList.remove('hidden');
-  document.getElementById('uploadPreviewImage').src = URL.createObjectURL(file);
+  document.getElementById('uploadPreviewImage').src = URL.createObjectURL(files[0]);
+  
+  var countEl = document.getElementById('uploadFilesCount');
+  var hintEl = document.getElementById('multiFileHint');
+  if (files.length > 1) {
+    countEl.innerText = files.length + ' file dipilih';
+    countEl.classList.remove('hidden');
+    if (hintEl) hintEl.classList.remove('hidden');
+  } else {
+    countEl.classList.add('hidden');
+    if (hintEl) hintEl.classList.add('hidden');
+  }
+  
   document.getElementById('uploadImageTitle').disabled = false;
   document.getElementById('saveImageBtn').disabled = false;
   document.getElementById('uploadImageTitle').focus();
 }
 
 function clearSelectedFile() {
-  selectedFileData = null;
+  selectedFilesData = [];
   document.getElementById('fileInput').value = '';
   document.getElementById('uploadImageTitle').value = '';
   document.getElementById('uploadDropzone').classList.remove('hidden');
   document.getElementById('uploadPreviewContainer').classList.add('hidden');
   document.getElementById('uploadPreviewImage').src = '';
+  document.getElementById('uploadFilesCount').classList.add('hidden');
+  var hintEl = document.getElementById('multiFileHint');
+  if (hintEl) hintEl.classList.add('hidden');
   document.getElementById('uploadImageTitle').disabled = true;
   document.getElementById('saveImageBtn').disabled = true;
 }
 
 async function handleSaveImage(e) {
   e.preventDefault();
-  if (!selectedFileData || !activeCode) return;
+  if (!selectedFilesData || selectedFilesData.length === 0 || !activeCode) return;
   var btn = document.getElementById('saveImageBtn');
   btn.disabled = true;
   btn.textContent = 'Mengunggah...';
+  
+  var baseTitle = document.getElementById('uploadImageTitle').value.trim() || 'Tanpa Judul';
+  var isMultiple = selectedFilesData.length > 1;
+
   try {
-    // Detect original file extension and content type
-    var origName = selectedFileData.name || 'image';
-    var ext = origName.split('.').pop().toLowerCase();
-    var mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', bmp: 'image/bmp', tiff: 'image/tiff', svg: 'image/svg+xml' };
-    var contentType = mimeMap[ext] || selectedFileData.type || 'image/jpeg';
-    if (!mimeMap[ext]) ext = 'jpg'; // fallback extension
-    var fileName = activeCode + '/' + Date.now() + '.' + ext;
-    var uploadRes = await sb.storage.from('rnd-gallery').upload(fileName, selectedFileData, { contentType: contentType });
-    if (uploadRes.error) throw uploadRes.error;
-    var urlData = sb.storage.from('rnd-gallery').getPublicUrl(fileName);
-    var imageUrl = urlData.data.publicUrl;
-    var title = document.getElementById('uploadImageTitle').value.trim() || 'Tanpa Judul';
-    var insertRes = await sb.from('gallery_images').insert({ code: activeCode, title: title, image_url: imageUrl }).select().single();
-    if (insertRes.error) throw insertRes.error;
-    galleries[activeCode].push({ id: insertRes.data.id, title: title, url: imageUrl });
+    for (var i = 0; i < selectedFilesData.length; i++) {
+      var file = selectedFilesData[i];
+      var origName = file.name || 'image';
+      var ext = origName.split('.').pop().toLowerCase();
+      var mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', bmp: 'image/bmp', tiff: 'image/tiff', svg: 'image/svg+xml' };
+      var contentType = mimeMap[ext] || file.type || 'image/jpeg';
+      if (!mimeMap[ext]) ext = 'jpg'; // fallback extension
+      
+      var fileName = activeCode + '/' + Date.now() + '_' + Math.random().toString(36).substring(7) + '.' + ext;
+      
+      if (isMultiple) {
+        btn.textContent = 'Mengunggah... (' + (i + 1) + '/' + selectedFilesData.length + ')';
+      }
+
+      var uploadRes = await sb.storage.from('rnd-gallery').upload(fileName, file, { contentType: contentType });
+      if (uploadRes.error) throw uploadRes.error;
+      
+      var urlData = sb.storage.from('rnd-gallery').getPublicUrl(fileName);
+      var imageUrl = urlData.data.publicUrl;
+      
+      var title = isMultiple ? baseTitle + ' ' + (i + 1) : baseTitle;
+      
+      var insertRes = await sb.from('gallery_images').insert({ code: activeCode, title: title, image_url: imageUrl }).select().single();
+      if (insertRes.error) throw insertRes.error;
+      
+      galleries[activeCode].push({ id: insertRes.data.id, title: title, url: imageUrl });
+    }
+
     closeUploadModal();
     renderApp();
   } catch (err) {
