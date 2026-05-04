@@ -256,7 +256,7 @@ function openLightbox(url, title) {
   document.getElementById('lightboxTitle').innerText = title;
   document.getElementById('lbZoomLevel').innerText = '100%';
   img.src = url;
-  lbState = { scale: 1, panX: 0, panY: 0, dragging: false, startX: 0, startY: 0, minScale: 0.5, maxScale: 20 };
+  lbState = { scale: 1, panX: 0, panY: 0, dragging: false, startX: 0, startY: 0, minScale: 0.01, maxScale: 20 };
   modal.classList.remove('hidden');
   img.onload = function() { lbApplyTransform(); };
 }
@@ -272,8 +272,8 @@ function lbApplyTransform() {
   document.getElementById('lbZoomLevel').innerText = Math.round(lbState.scale * 100) + '%';
 }
 
-function lbZoomIn()  { lbSetScale(lbState.scale * 1.4); }
-function lbZoomOut() { lbSetScale(lbState.scale / 1.4); }
+function lbZoomIn()  { lbSetScale(lbState.scale * 1.2); }
+function lbZoomOut() { lbSetScale(lbState.scale / 1.2); }
 function lbSetScale(newScale) {
   lbState.scale = Math.max(lbState.minScale, Math.min(lbState.maxScale, newScale));
   lbApplyTransform();
@@ -308,7 +308,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var mouseX = e.clientX - rect.left - rect.width / 2;
     var mouseY = e.clientY - rect.top - rect.height / 2;
     var oldScale = lbState.scale;
-    var factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+    var factor = e.deltaY < 0 ? 1.04 : 1 / 1.04;
     var newScale = Math.max(lbState.minScale, Math.min(lbState.maxScale, oldScale * factor));
     // Zoom toward cursor
     lbState.panX = mouseX - (mouseX - lbState.panX) * (newScale / oldScale);
