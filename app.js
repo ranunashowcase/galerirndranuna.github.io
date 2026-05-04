@@ -47,6 +47,8 @@ function renderApp() {
   lucide.createIcons();
 }
 
+var embedIndex = 0;
+
 function renderEmbedContent() {
   var mc = document.getElementById('mainContent');
   mc.className = 'flex-1 flex flex-col h-full overflow-hidden bg-white';
@@ -54,13 +56,40 @@ function renderEmbedContent() {
   if (images.length === 0) {
     mc.innerHTML = '<div class="h-full flex flex-col items-center justify-center text-center p-4"><i data-lucide="image" class="w-10 h-10 text-gray-300 mb-2"></i><p class="text-gray-500 text-sm font-medium">Belum ada gambar</p><p class="text-xs text-gray-400 mt-1">Kode: ' + embedCode + '</p></div>';
   } else {
-    var html = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 p-4 h-full overflow-y-auto">';
-    images.forEach(function(img) {
-      html += '<div class="aspect-square bg-gray-100 rounded-xl overflow-hidden relative group cursor-pointer" onclick="openLightbox(\'' + img.url + '\', \'' + img.title.replace(/'/g, "\\'") + '\')"><img src="' + img.url + '" alt="' + img.title + '" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110" /><div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center p-2 text-center"><span class="text-white text-xs font-medium truncate w-full">' + img.title + '</span></div></div>';
-    });
+    if (embedIndex >= images.length) embedIndex = images.length - 1;
+    if (embedIndex < 0) embedIndex = 0;
+    var img = images[embedIndex];
+    var html = '<div class="h-full flex flex-col relative select-none">';
+    // Image area
+    html += '<div class="flex-1 relative overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer" onclick="openLightbox(\'' + img.url + '\', \'' + img.title.replace(/'/g, "\\'") + '\')">';
+    html += '<img src="' + img.url + '" alt="' + img.title + '" class="max-w-full max-h-full object-contain" draggable="false" />';
+    // Left arrow
+    if (images.length > 1) {
+      html += '<button onclick="event.stopPropagation(); embedNav(-1)" class="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-all shadow-lg backdrop-blur-sm" title="Sebelumnya"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>';
+      // Right arrow
+      html += '<button onclick="event.stopPropagation(); embedNav(1)" class="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 flex items-center justify-center rounded-full bg-black/40 hover:bg-black/60 text-white transition-all shadow-lg backdrop-blur-sm" title="Berikutnya"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>';
+    }
+    // Fullscreen button
+    html += '<button onclick="event.stopPropagation(); openLightbox(\'' + img.url + '\', \'' + img.title.replace(/'/g, "\\'") + '\')" class="absolute top-2 right-2 w-8 h-8 flex items-center justify-center rounded-lg bg-black/40 hover:bg-black/60 text-white transition-all backdrop-blur-sm" title="Buka Fullscreen"><i data-lucide="maximize-2" class="w-4 h-4"></i></button>';
+    html += '</div>';
+    // Bottom bar: title + counter
+    html += '<div class="flex items-center justify-between px-3 py-2 bg-white border-t border-gray-100">';
+    html += '<p class="text-xs font-medium text-gray-700 truncate flex-1 mr-2">' + img.title + '</p>';
+    html += '<span class="text-[10px] font-semibold text-gray-400 whitespace-nowrap">' + (embedIndex + 1) + ' / ' + images.length + '</span>';
+    html += '</div>';
     html += '</div>';
     mc.innerHTML = html;
   }
+}
+
+function embedNav(dir) {
+  var images = galleries[embedCode] || [];
+  if (images.length <= 1) return;
+  embedIndex += dir;
+  if (embedIndex < 0) embedIndex = images.length - 1;
+  if (embedIndex >= images.length) embedIndex = 0;
+  renderEmbedContent();
+  lucide.createIcons();
 }
 
 function renderPreviewContent() {
